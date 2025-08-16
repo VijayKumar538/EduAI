@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduAI - Intelligent Learning Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.2.12/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+       
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+       
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+       
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+       
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+       
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+       
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+        }
+       
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+       
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+       
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+       
+        .message-bubble {
+            animation: slideIn 0.3s ease-out;
+        }
+       
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+       
+        .upload-zone {
+            transition: all 0.3s ease;
+        }
+       
+        .upload-zone:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+       
+        .grade-card {
+            transition: all 0.3s ease;
+        }
+       
+        .grade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+       
+        .ai-response h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+       
+        .ai-response h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+       
+        .ai-response p {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+       
+        .ai-response ul, .ai-response ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+       
+        .ai-response li {
+            margin-bottom: 0.5rem;
+        }
+       
+        .ai-response strong {
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+       
+        .ai-response code:not(.hljs) {
+            background-color: rgba(0,0,0,0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+       
+        .ai-response blockquote {
+            border-left: 3px solid #818cf8;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #e2e8f0;
+            font-style: italic;
+        }
+       
+        .ai-response pre {
+            background-color: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+       
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+       
+        .toast.success {
+            background-color: #10b981;
+        }
+       
+        .toast.error {
+            background-color: #ef4444;
+        }
+       
+        .toast.show {
+            opacity: 1;
+        }
+       
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+       
+        .modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <div id="role-selection" class="text-center">
+                <h2 class="text-2xl font-bold text-white mb-6">Select Your Role</h2>
+                <div class="flex justify-center space-x-4">
+                    <button
+                        onclick="showLoginForm('student')"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-all duration-300"
+                    >
+                        Student Login
+                    </button>
+                    <button
+                        onclick="showLoginForm('admin')"
+                        class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-all duration-300"
+                    >
+                        Admin Login
+                    </button>
+                </div>
+            </div>
+            <div id="login-form-container" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="login-title" class="text-2xl font-bold text-white">Login</h2>
+                    <button onclick="showRoleSelection()" class="text-white hover:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label class="block text-white mb-2" for="username">Username</label>
+                        <input
+                            type="text"
+                            id="username"
+                            class="w-full p-3 rounded-lg bg-white bg-opacity-10 text-white placeholder-gray-300 border border-white border-opacity-20 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Enter username"
+                        >
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-white mb-2" for="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            class="w-full p-3 rounded-lg bg-white bg-opacity-10 text-white placeholder-gray-300 border border-white border-opacity-20 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Enter password"
+                        >
+                    </div>
+                    <button
+                        type="submit"
+                        id="login-button"
+                        class="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-all duration-300 flex items-center justify-center"
+                    >
+                        <span id="login-button-text">Login</span>
+                        <svg id="login-spinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </form>
+                <p id="login-error" class="text-red-400 text-center mt-4 hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="glass-effect p-4 mb-8 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-2xl">🎓</span>
+                </div>
+                <h1 class="text-2xl font-bold text-white">EduAI</h1>
+            </div>
+            <div class="flex space-x-4">
+                <button id="student-portal-btn" class="nav-btn bg-white text-purple-600 px-6 py-2 rounded-lg transition-all duration-300">
+                    Student Portal
+                </button>
+                <button id="admin-portal-btn" class="nav-btn bg-white bg-opacity-20 text-white px-6 py-2 rounded-lg hover:bg-opacity-30 transition-all duration-300">
+                    Admin Panel
+                </button>
+                <button id="logout-btn" class="nav-btn bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-all duration-300 hidden">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Student Portal -->
+    <div id="student-section" class="max-w-6xl mx-auto px-4 pb-12 hidden">
+        <!-- Grade Selection (Visible only for Admins) -->
+        <div id="grade-selection" class="mb-8 hidden">
+            <h2 class="text-3xl font-bold text-white text-center mb-8 animate-float">Select Grade Level</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('nursery')" data-grade="nursery">
+                    <div class="text-3xl mb-2">🧸</div>
+                    <div class="text-white font-medium">Nursery</div>
+                </div>
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('kg')" data-grade="kg">
+                    <div class="text-3xl mb-2">🎨</div>
+                    <div class="text-white font-medium">KG</div>
+                </div>
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('1-5')" data-grade="1-5">
+                    <div class="text-3xl mb-2">📚</div>
+                    <div class="text-white font-medium">1st-5th</div>
+                </div>
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('6-8')" data-grade="6-8">
+                    <div class="text-3xl mb-2">🔬</div>
+                    <div class="text-white font-medium">6th-8th</div>
+                </div>
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('9-10')" data-grade="9-10">
+                    <div class="text-3xl mb-2">📖</div>
+                    <div class="text-white font-medium">9th-10th</div>
+                </div>
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('11-12')" data-grade="11-12">
+                    <div class="text-3xl mb-2">🎯</div>
+                    <div class="text-white font-medium">11th-12th</div>
+                </div>
+                <div class="grade-card glass-effect p-4 rounded-xl text-center cursor-pointer hover:bg-opacity-30 transition-all" onclick="selectGrade('engineering')" data-grade="engineering">
+                    <div class="text-3xl mb-2">⚙️</div>
+                    <div class="text-white font-medium">Engineering</div>
+                </div>
+            </div>
+        </div>
+        <!-- Chat Interface -->
+        <div class="glass-effect rounded-2xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-white">AI Learning Assistant</h3>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                        <span class="text-white text-sm">Online</span>
+                    </div>
+                </div>
+            </div>
+            <div id="chat-messages" class="h-96 overflow-y-auto mb-4 space-y-4 p-4 bg-white bg-opacity-5 rounded-xl">
+                <div class="message-bubble flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shrink-0">
+                        <span class="text-white text-sm">🤖</span>
+                    </div>
+                    <div class="bg-white bg-opacity-10 p-3 rounded-lg max-w-[90%]">
+                        <div class="text-white">Hello! I'm your AI learning assistant. Ask me any question about your studies!</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <input
+                    type="text"
+                    id="question-input"
+                    placeholder="Ask your question here..."
+                    class="flex-1 p-3 rounded-lg bg-white bg-opacity-10 text-white placeholder-gray-300 border border-white border-opacity-20 focus:outline-none focus:border-opacity-50 focus:ring-2 focus:ring-purple-500"
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button
+                    onclick="askQuestion()"
+                    id="ask-button"
+                    class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-all duration-300 flex items-center justify-center"
+                >
+                    <span id="button-text">Ask AI</span>
+                    <svg id="spinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-section" class="max-w-6xl mx-auto px-4 pb-12 hidden">
+        <h2 class="text-3xl font-bold text-white text-center mb-8">Admin Dashboard</h2>
+        <!-- Upload Educational Content Section -->
+        <div class="glass-effect rounded-2xl p-6 mb-8">
+            <h3 class="text-xl font-semibold text-white mb-6">Upload Educational Content</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-white mb-3">Select Grade Level:</label>
+                    <select id="upload-grade" class="w-full p-3 rounded-lg bg-white bg-opacity-10 text-white border border-white border-opacity-20 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="nursery">Nursery</option>
+                        <option value="kg">KG</option>
+                        <option value="1-5">1st-5th Grade</option>
+                        <option value="6-8">6th-8th Grade</option>
+                        <option value="9-10">9th-10th Grade</option>
+                        <option value="11-12">11th-12th Grade</option>
+                        <option value="engineering">Engineering</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white mb-3">Subject:</label>
+                    <input type="text" id="subject-input" placeholder="e.g., Mathematics, Physics, Chemistry" class="w-full p-3 rounded-lg bg-white bg-opacity-10 text-white placeholder-gray-300 border border-white border-opacity-20 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+            </div>
+            <div class="mt-6">
+                <div class="upload-zone border-2 border-dashed border-white border-opacity-30 rounded-xl p-8 text-center cursor-pointer hover:bg-white hover:bg-opacity-5 transition-all" onclick="document.getElementById('file-input').click()">
+                    <div class="text-6xl mb-4">📁</div>
+                    <h4 class="text-white text-lg font-medium mb-2">Drop files here or click to upload</h4>
+                    <p class="text-gray-300">Supports PDF, DOC, DOCX, Images (JPG, PNG), Excel (XLS, XLSX)</p>
+                    <input type="file" id="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx" class="hidden" onchange="handleFileUpload(event)">
+                </div>
+            </div>
+            <div id="upload-progress" class="mt-4 hidden">
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <div class="flex justify-between text-white mb-2">
+                        <span>Uploading...</span>
+                        <span id="progress-text">0%</span>
+                    </div>
+                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                        <div id="progress-bar" class="bg-purple-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Upload Students Section -->
+        <div class="glass-effect rounded-2xl p-6 mb-8">
+            <h3 class="text-xl font-semibold text-white mb-6">Upload Students (Excel)</h3>
+            <div class="mt-6">
+                <div class="upload-zone border-2 border-dashed border-white border-opacity-30 rounded-xl p-8 text-center cursor-pointer hover:bg-white hover:bg-opacity-5 transition-all" onclick="document.getElementById('students-file-input').click()">
+                    <div class="text-6xl mb-4">📊</div>
+                    <h4 class="text-white text-lg font-medium mb-2">Drop Excel file here or click to upload</h4>
+                    <p class="text-gray-300">Supports Excel (XLS, XLSX). File must contain columns: name, username, password, class, grade</p>
+                    <input type="file" id="students-file-input" accept=".xls,.xlsx" class="hidden" onchange="handleStudentsUpload(event)">
+                </div>
+            </div>
+            <div id="students-upload-progress" class="mt-4 hidden">
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <div class="flex justify-between text-white mb-2">
+                        <span>Uploading Students...</span>
+                        <span id="students-progress-text">0%</span>
+                    </div>
+                    <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                        <div id="students-progress-bar" class="bg-purple-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Students List -->
+        <div class="glass-effect rounded-2xl p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-white">Students List</h3>
+                <button onclick="updateStudentsList()" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white px-4 py-2 rounded-lg transition-all flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+            <div id="students-list" class="space-y-3">
+                <div class="text-center py-8 text-gray-300">
+                    <p>No students added yet</p>
+                </div>
+            </div>
+        </div>
+        <!-- Content Management -->
+        <div class="glass-effect rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-white">Uploaded Content</h3>
+                <button onclick="updateContentList()" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white px-4 py-2 rounded-lg transition-all flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+            <div id="content-list" class="space-y-3">
+                <div class="text-center py-8 text-gray-300">
+                    <p>No content uploaded yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGrade = '';
+        let sessionId = localStorage.getItem('sessionId') || generateSessionId();
+        let activeChatRequest = null;
+        let authToken = localStorage.getItem('authToken') || null;
+        let userRole = localStorage.getItem('userRole') || null;
+        let userData = JSON.parse(localStorage.getItem('userData')) || null;
+
+        function generateSessionId() {
+            const id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            localStorage.setItem('sessionId', id);
+            return id;
+        }
+
+        // Authentication Functions
+        function showLoginModal() {
+            const modal = document.getElementById('login-modal');
+            const roleSelection = document.getElementById('role-selection');
+            const loginFormContainer = document.getElementById('login-form-container');
+            roleSelection.classList.remove('hidden');
+            loginFormContainer.classList.add('hidden');
+            modal.style.display = 'flex';
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        function showLoginForm(type) {
+            const roleSelection = document.getElementById('role-selection');
+            const loginFormContainer = document.getElementById('login-form-container');
+            const loginTitle = document.getElementById('login-title');
+            const loginForm = document.getElementById('login-form');
+
+            roleSelection.classList.add('hidden');
+            loginFormContainer.classList.remove('hidden');
+            loginTitle.textContent = type === 'admin' ? 'Admin Login' : 'Student Login';
+            loginForm.dataset.type = type;
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        function showRoleSelection() {
+            const roleSelection = document.getElementById('role-selection');
+            const loginFormContainer = document.getElementById('login-form-container');
+            roleSelection.classList.remove('hidden');
+            loginFormContainer.classList.add('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const type = event.target.dataset.type;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const loginButton = document.getElementById('login-button');
+            const buttonText = document.getElementById('login-button-text');
+            const spinner = document.getElementById('login-spinner');
+            const errorDiv = document.getElementById('login-error');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'Username and password are required';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            loginButton.disabled = true;
+            buttonText.textContent = 'Logging in...';
+            spinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`/api/${type}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    authToken = data.token;
+                    userRole = type;
+                    userData = type === 'admin' ? data.admin : data.student;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('userRole', userRole);
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                    document.getElementById('login-modal').style.display = 'none';
+                    document.getElementById('logout-btn').classList.remove('hidden');
+                    showSection(type);
+                    if (type === 'student' && userData.grade) {
+                        currentGrade = userData.grade;
+                        loadChatHistory(); // Load chat history on login
+                    }
+                    showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} logged in successfully`, 'success');
+                } else {
+                    errorDiv.textContent = data.error || 'Invalid credentials';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'Login failed. Please try again.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loginButton.disabled = false;
+                buttonText.textContent = 'Login';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function handleLogout() {
+            authToken = null;
+            userRole = null;
+            userData = null;
+            currentGrade = '';
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userData');
+            // Do not reset sessionId to preserve chat history
+            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('student-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.add('hidden');
+            document.getElementById('grade-selection').classList.add('hidden');
+            showLoginModal();
+            showToast('Logged out successfully', 'success');
+        }
+
+        function showSection(section) {
+            if (!authToken) {
+                showLoginModal();
+                return;
+            }
+            if (section === 'admin' && userRole !== 'admin') {
+                showToast('Access denied. Admin privileges required.', 'error');
+                return;
+            }
+
+            document.getElementById('student-section').classList.toggle('hidden', section !== 'student');
+            document.getElementById('admin-section').classList.toggle('hidden', section !== 'admin');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-purple-600');
+                btn.classList.add('bg-white', 'bg-opacity-20', 'text-white');
+            });
+
+            document.getElementById(`${section}-portal-btn`).classList.remove('bg-opacity-20');
+            document.getElementById(`${section}-portal-btn`).classList.add('bg-white', 'text-purple-600');
+
+            if (section === 'student') {
+                const gradeSelection = document.getElementById('grade-selection');
+                if (userRole === 'student' && userData.grade) {
+                    gradeSelection.classList.add('hidden');
+                    if (!currentGrade) {
+                        currentGrade = userData.grade;
+                        addMessage('system', `Welcome back! I'm ready to help with ${getGradeName(currentGrade)} level questions.`);
+                    }
+                    loadChatHistory(); // Load chat history for students
+                } else if (userRole === 'admin') {
+                    gradeSelection.classList.remove('hidden');
+                    if (currentGrade) {
+                        loadChatHistory(); // Load chat history for admins if grade is selected
+                    } else {
+                        addMessage('system', 'Please select a grade level to proceed.');
+                    }
+                }
+            } else if (section === 'admin') {
+                updateContentList();
+                updateStudentsList();
+            }
+        }
+
+        // Grade Selection
+        function selectGrade(grade) {
+            if (userRole === 'student' && userData.grade !== grade) {
+                showToast('You can only select your assigned grade.', 'error');
+                return;
+            }
+            currentGrade = grade;
+            document.querySelectorAll('.grade-card').forEach(card => {
+                card.classList.remove('bg-white', 'bg-opacity-30');
+                card.classList.add('bg-white', 'bg-opacity-10');
+                if (card.dataset.grade === grade) {
+                    card.classList.remove('bg-opacity-10');
+                    card.classList.add('bg-opacity-30');
+                }
+            });
+
+            addMessage('system', `Great! I'm now ready to help you with ${getGradeName(grade)} level questions. What would you like to learn about?`);
+            loadChatHistory();
+        }
+
+        function getGradeName(grade) {
+            const gradeNames = {
+                'nursery': 'Nursery',
+                'kg': 'Kindergarten',
+                '1-5': '1st-5th Grade',
+                '6-8': '6th-8th Grade',
+                '9-10': '9th-10th Grade',
+                '11-12': '11th-12th Grade',
+                'engineering': 'Engineering'
+            };
+            return gradeNames[grade] || grade;
+        }
+
+        // Chat Functions
+        function addMessage(sender, message, isTyping = false, sources = [], question = '') {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            const isUser = sender === 'user';
+            const avatar = isUser ? '👤' : '🤖';
+            const bgColor = isUser ? 'bg-blue-500' : 'bg-purple-500';
+            const alignment = isUser ? 'flex-row-reverse space-x-reverse' : '';
+
+            messageDiv.className = `message-bubble flex items-start space-x-3 ${alignment}`;
+            messageDiv.dataset.question = question;
+
+            let sourcesHtml = '';
+            if (sources.length > 0 && !isTyping) {
+                sourcesHtml = '<div class="text-gray-300 text-xs mt-2">Sources:<ul class="list-disc ml-4">';
+                sources.forEach(source => {
+                    sourcesHtml += `<li>${source.filename} (${source.subject})</li>`;
+                });
+                sourcesHtml += '</ul></div>';
+            }
+
+            let messageContent = message;
+            if (!isTyping && sender === 'ai') {
+                messageContent = marked.parse(message);
+            }
+
+            const downloadButtons = !isTyping && sender === 'ai' ? `
+                <div class="flex space-x-2 mt-2">
+                    <button
+                        onclick="downloadResponse('${encodeURIComponent(question)}', 'pdf')"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-all duration-300 flex items-center"
+                        title="Download response as PDF"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        PDF
+                    </button>
+                    <button
+                        onclick="downloadResponse('${encodeURIComponent(question)}', 'docx')"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-all duration-300 flex items-center"
+                        title="Download response as DOCX"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        DOCX
+                    </button>
+                </div>
+            ` : '';
+
+            messageDiv.innerHTML = `
+                <div class="w-8 h-8 ${bgColor} rounded-full flex items-center justify-center shrink-0">
+                    <span class="text-white text-sm">${avatar}</span>
+                </div>
+                <div class="bg-white bg-opacity-10 p-3 rounded-lg max-w-[90%]">
+                    ${isTyping ? `
+                        <div class="typing-indicator text-white">
+                            <span class="mr-2">Thinking</span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
+                    ` : `
+                        <div class="${sender === 'ai' ? 'ai-response text-white' : 'text-white'}">${messageContent}</div>
+                        ${sourcesHtml}
+                        ${downloadButtons}
+                    `}
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (sender === 'ai') {
+                setTimeout(() => {
+                    document.querySelectorAll('pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                    });
+                }, 100);
+            }
+
+            return messageDiv;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                askQuestion();
+            }
+        }
+
+        async function askQuestion() {
+            if (!authToken) {
+                showToast('Please log in to ask questions.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            if (activeChatRequest) {
+                activeChatRequest.abort();
+            }
+
+            const input = document.getElementById('question-input');
+            const question = input.value.trim();
+
+            if (!question) {
+                showToast('Please enter a question.', 'error');
+                return;
+            }
+            if (!currentGrade) {
+                showToast(userRole === 'admin' ? 'Please select a grade level first.' : 'Grade not assigned. Contact admin.', 'error');
+                return;
+            }
+
+            input.value = '';
+            addMessage('user', question);
+
+            const typingMsg = addMessage('system', '', true);
+
+            try {
+                const askButton = document.getElementById('ask-button');
+                const buttonText = document.getElementById('button-text');
+                const spinner = document.getElementById('spinner');
+
+                askButton.disabled = true;
+                buttonText.textContent = 'Processing...';
+                spinner.classList.remove('hidden');
+
+                const controller = new AbortController();
+                activeChatRequest = controller;
+
+                console.log(`Sending question with sessionId: ${sessionId}, grade: ${currentGrade}`);
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: JSON.stringify({
+                        question,
+                        sessionId,
+                        subject: 'General',
+                        grade: currentGrade // Include grade in request body
+                    }),
+                    signal: controller.signal
+                });
+
+                const data = await response.json();
+                typingMsg.remove();
+
+                if (data.success) {
+                    addMessage('ai', data.response, false, data.sources, question);
+                } else {
+                    addMessage('system', 'Sorry, I encountered an error: ' + (data.error || 'Please try again later'));
+                    console.error('Chat API error:', data.error, data.details);
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    typingMsg.remove();
+                    addMessage('system', 'Sorry, I encountered an error. Please try again.');
+                    console.error('Error in askQuestion:', error);
+                }
+            } finally {
+                const askButton = document.getElementById('ask-button');
+                const buttonText = document.getElementById('button-text');
+                const spinner = document.getElementById('spinner');
+
+                askButton.disabled = false;
+                buttonText.textContent = 'Ask AI';
+                spinner.classList.add('hidden');
+                activeChatRequest = null;
+            }
+        }
+
+        async function loadChatHistory() {
+            if (!authToken || !currentGrade) return;
+
+            try {
+                const response = await fetch(`/api/chat-history/${sessionId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+                const data = await response.json();
+
+                const chatMessages = document.getElementById('chat-messages');
+                chatMessages.innerHTML = '';
+
+                if (data.messages && data.messages.length > 0) {
+                    let lastUserQuestion = '';
+                    data.messages.forEach(msg => {
+                        if (msg.sender === 'user') {
+                            lastUserQuestion = msg.message;
+                            addMessage(msg.sender, msg.message, false, []);
+                        } else if (msg.sender === 'ai') {
+                            const sources = msg.usedContent ? msg.usedContent.map(content => ({
+                                filename: content.contentId?.originalName || 'Unknown',
+                                subject: content.contentId?.subject || 'General'
+                            })) : [];
+                            addMessage(msg.sender, msg.message, false, sources, lastUserQuestion);
+                        }
+                    });
+                } else {
+                    addMessage('system', `Hello, ${userData?.name || 'User'}! I'm your AI learning assistant for ${getGradeName(currentGrade)} level. Ask me any question about your studies!`);
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                addMessage('system', 'Error loading chat history. Please try again.');
+            }
+        }
+
+        async function downloadResponse(question, format) {
+            if (!authToken) {
+                showToast('Please log in to download responses.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            if (!sessionId) {
+                showToast('No chat session available to download', 'error');
+                return;
+            }
+
+            try {
+                console.log(`Downloading response for question: "${question}", format: ${format}, sessionId: ${sessionId}`);
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: JSON.stringify({
+                        sessionId,
+                        format,
+                        question: decodeURIComponent(question)
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    showToast(`Error downloading file: ${data.error}`, 'error');
+                    console.error('Download API error:', data.error);
+                    return;
+                }
+
+                const blob = await response.blob();
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const filename = contentDisposition
+                    ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+                    : `EduAI_Response_${Date.now()}.${format}`;
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                showToast(`Response downloaded as ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                console.error('Error downloading response:', error);
+                showToast('Error downloading response', 'error');
+            }
+        }
+
+        async function handleFileUpload(event) {
+            if (!authToken || userRole !== 'admin') {
+                showToast('Please log in as an admin to upload content.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            const file = event.target.files[0];
+            const grade = document.getElementById('upload-grade').value;
+            const subject = document.getElementById('subject-input').value.trim();
+
+            if (!file) {
+                showToast('Please select a file', 'error');
+                return;
+            }
+            if (!subject) {
+                showToast('Please enter a subject name', 'error');
+                return;
+            }
+
+            const progressDiv = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+
+            progressDiv.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('grade', grade);
+                formData.append('subject', subject);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                for (let i = 0; i <= 100; i += 5) {
+                    progressBar.style.width = i + '%';
+                    progressText.textContent = i + '%';
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                if (data.success) {
+                    showToast(`File "${data.filename}" uploaded successfully!`, 'success');
+                    updateContentList();
+                } else {
+                    showToast('Error uploading file: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                showToast('Error uploading file', 'error');
+            } finally {
+                setTimeout(() => {
+                    progressDiv.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                    progressText.textContent = '0%';
+                }, 1000);
+            }
+        }
+
+        async function handleStudentsUpload(event) {
+            if (!authToken || userRole !== 'admin') {
+                showToast('Please log in as an admin to upload students.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            const file = event.target.files[0];
+
+            if (!file) {
+                showToast('Please select an Excel file', 'error');
+                return;
+            }
+
+            const progressDiv = document.getElementById('students-upload-progress');
+            const progressBar = document.getElementById('students-progress-bar');
+            const progressText = document.getElementById('students-progress-text');
+
+            progressDiv.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/admin/upload-students', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                for (let i = 0; i <= 100; i += 5) {
+                    progressBar.style.width = i + '%';
+                    progressText.textContent = i + '%';
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                if (data.success) {
+                    showToast(`Successfully imported ${data.results.success} students`, 'success');
+                    if (data.results.errors.length > 0) {
+                        showToast(`Some rows failed to import: ${data.results.errors.join(', ')}`, 'error');
+                    }
+                    updateStudentsList();
+                } else {
+                    showToast('Error uploading students: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error uploading students:', error);
+                showToast('Error uploading students', 'error');
+            } finally {
+                setTimeout(() => {
+                    progressDiv.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                    progressText.textContent = '0%';
+                }, 1000);
+            }
+        }
+
+        async function updateContentList() {
+            if (!authToken || userRole !== 'admin') {
+                showToast('Please log in as an admin to view content.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/content', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+                const content = await response.json();
+
+                const contentList = document.getElementById('content-list');
+                contentList.innerHTML = '';
+
+                if (content.length === 0) {
+                    contentList.innerHTML = `
+                        <div class="text-center py-8 text-gray-300">
+                            <p>No content uploaded yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                content.forEach(item => {
+                    const contentItem = document.createElement('div');
+                    contentItem.className = 'bg-white bg-opacity-10 p-4 rounded-lg flex justify-between items-center hover:bg-opacity-20 transition-all';
+                    contentItem.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-white bg-opacity-10 rounded-lg flex items-center justify-center">
+                                ${getFileIcon(item.fileType)}
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium truncate max-w-xs">${item.originalName}</h4>
+                                <p class="text-gray-300 text-sm">${item.grade.toUpperCase()} - ${item.subject}</p>
+                                <p class="text-gray-400 text-xs">${formatDate(item.uploadDate)} • ${formatFileSize(item.fileSize)}</p>
+                            </div>
+                        </div>
+                        <button onclick="removeContent('${item._id}', event)" class="text-red-400 hover:text-red-300 transition-colors p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    `;
+                    contentList.appendChild(contentItem);
+                });
+            } catch (error) {
+                console.error('Error fetching content:', error);
+                showToast('Error loading content list', 'error');
+            }
+        }
+
+        async function updateStudentsList() {
+            if (!authToken || userRole !== 'admin') {
+                showToast('Please log in as an admin to view students.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/students', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+                const students = await response.json();
+
+                const studentsList = document.getElementById('students-list');
+                studentsList.innerHTML = '';
+
+                if (students.length === 0) {
+                    studentsList.innerHTML = `
+                        <div class="text-center py-8 text-gray-300">
+                            <p>No students added yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                students.forEach(student => {
+                    const studentItem = document.createElement('div');
+                    studentItem.className = 'bg-white bg-opacity-10 p-4 rounded-lg flex justify-between items-center hover:bg-opacity-20 transition-all';
+                    studentItem.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-white bg-opacity-10 rounded-lg flex items-center justify-center">
+                                👤
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium">${student.name}</h4>
+                                <p class="text-gray-300 text-sm">${student.grade.toUpperCase()} - ${student.class}</p>
+                                <p class="text-gray-400 text-xs">Username: ${student.username} • Joined: ${formatDate(student.createdAt)}</p>
+                            </div>
+                        </div>
+                    `;
+                    studentsList.appendChild(studentItem);
+                });
+            } catch (error) {
+                console.error('Error fetching students:', error);
+                showToast('Error loading students list', 'error');
+            }
+        }
+
+        function getFileIcon(fileType) {
+            if (fileType.includes('pdf')) return '📄';
+            if (fileType.includes('word')) return '📝';
+            if (fileType.includes('image')) return '🖼️';
+            if (fileType.includes('text')) return '📝';
+            if (fileType.includes('sheet') || fileType.includes('excel')) return '📊';
+            return '📁';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function removeContent(id, event) {
+            event.stopPropagation();
+
+            if (!authToken || userRole !== 'admin') {
+                showToast('Please log in as an admin to delete content.', 'error');
+                showLoginModal();
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete this content?')) return;
+
+            try {
+                const response = await fetch(`/api/content/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Content deleted successfully', 'success');
+                    updateContentList();
+                } else {
+                    showToast('Error deleting content: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting content:', error);
+                showToast('Error deleting content', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    return code;
+                }
+            });
+
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('student-portal-btn').addEventListener('click', () => showSection('student'));
+            document.getElementById('admin-portal-btn').addEventListener('click', () => showSection('admin'));
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+            if (authToken && userRole) {
+                document.getElementById('logout-btn').classList.remove('hidden');
+                if (userRole === 'student' && userData.grade) {
+                    currentGrade = userData.grade;
+                    showSection('student');
+                    loadChatHistory(); // Load chat history on page load for students
+                } else if (userRole === 'admin') {
+                    showSection('admin');
+                    if (currentGrade) {
+                        showSection('student');
+                        loadChatHistory(); // Load chat history if admin has a grade selected
+                    }
+                }
+            } else {
+                showLoginModal();
+            }
+        });
+    </script>
+</body>
+</html>
